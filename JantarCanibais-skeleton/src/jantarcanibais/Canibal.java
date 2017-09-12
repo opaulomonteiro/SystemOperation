@@ -12,8 +12,11 @@ public class Canibal implements Runnable{
     @Override
     public void run() {
         while(true){
-            //aqui o canibal faz suas ações: servir-se, comer...
-            travessa.seserve();
+            //aqui o canibal faz suas ações: servir-se, comer...            
+            if(!travessa.seserve()){
+                System.out.print("Travessa Vazia");
+            }
+            
         }
         
     }
