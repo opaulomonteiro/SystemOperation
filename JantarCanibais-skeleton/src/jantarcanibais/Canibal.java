@@ -1,5 +1,8 @@
 package jantarcanibais;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Canibal implements Runnable{
     private final Travessa travessa;
     private final int id;
@@ -13,9 +16,11 @@ public class Canibal implements Runnable{
     public void run() {
         while(true){
             //aqui o canibal faz suas ações: servir-se, comer...            
-            if(!travessa.seserve()){
-                System.out.print("Travessa Vazia");
-            }
+            travessa.seserve();
+                                   
+
+                
+            
             
         }
         

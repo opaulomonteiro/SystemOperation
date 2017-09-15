@@ -21,21 +21,22 @@ public class Travessa {
     /* Chamada pelos canibais. 
        Retorna true se conseguiu se servir, senão retorna falso. 
      */
-    public boolean seserve() {
-        System.out.println("Canibal se servindo");
+    public boolean seserve() {        
         boolean retorno = false;
         try {
             mutex2.acquire();
             if (porcoes != 0) {
                 porcoes--;
-                System.out.println("Numero de porcoes: " + porcoes);                
+                Thread.sleep(1000);
+                System.out.println("Canibal se servindo,  numero de porcoes: " + porcoes);  
+                mutex2.release();
                 retorno = true;
             } else {     
-                System.out.println("Numero de porcoes: " + porcoes);   
+                Thread.sleep(1000);
+                System.out.println("Canibal não conseguiu comer e chamou o cozinheiro");   
                 mutex1.release();
                 retorno = false;
             }            
-            Thread.sleep(1000);
             
         } catch (InterruptedException ex) {
             Logger.getLogger(Travessa.class.getName()).log(Level.SEVERE, null, ex);
@@ -45,11 +46,13 @@ public class Travessa {
 
     /* Chamado pelo cozinheiro. */
     public void enchetravessa() {
-        System.out.println("Cozinheiro enchendo a travessa para " + totalDePorcoes + " porcoes");
-        try {
+        try {          
             mutex1.acquire();
+            System.out.println("Cozinheiro enchendo a travessa para " + totalDePorcoes + " porcoes");
+
             this.porcoes = this.totalDePorcoes;
             Thread.sleep(1000);
+            System.out.println("Total de procoes apos cozinheiro executar: " + porcoes);
             mutex2.release();
         } catch (InterruptedException ex) {
             Logger.getLogger(Travessa.class.getName()).log(Level.SEVERE, null, ex);
