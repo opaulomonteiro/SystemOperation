@@ -11,75 +11,77 @@ package tcpserver;
  */
 import java.io.*;
 import java.net.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-class TCPServer {
+class TCPServer extends Thread {
 
-    private static final int BUFFER_SIZE = 4096; // 4KB
+    private ServerSocket ss;
+    String clientSentence;
+    String echo;
 
-    public static void main(String argv[]) throws Exception {
-        String clientSentence;
-        String echo;
+    public TCPServer(int port) {
+        try {
+            ss = new ServerSocket(port);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-        /* Cria socket do servidor */
-
-        ServerSocket welcomeSocket = new ServerSocket(6790);
-
+    public void run() {
         while (true) {
-
-            /* Aguarda o recebimento de uma conexão. O servidor fica aguardando neste ponto 
-			 * até que nova conexão seja aceita. */
-            Socket connectionSocket = welcomeSocket.accept();
-
-            /* Cria uma stream de entrada para receber os dados do cliente */
-            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-
-            /* Cria uma stream de saída para enviar dados para o cliente */
-            DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-
-            /* Aguarda o envio de uma mensagem do cliente. Esta mensagem deve ser terminada em \n ou \r 
-			 * Neste exemplo espera-se que a mensagem seja textual (string). Para ler dados não textuais tente
-			 * a chamada read() */
-            clientSentence = inFromClient.readLine();
-
-            File dir = new File("C:\\Arquivos para Download\\" + clientSentence);
-
-            outToClient.writeBytes("Tamanho do arquivo desejado: " + dir.length());
-            
-            
-            
-//            File myFile = new File("E7060v1.2.zip");
-//        byte[] mybytearray = new byte[(int) myFile.length()];
-//         
-//        FileInputStream fis = new FileInputStream(myFile);
-//        BufferedInputStream bis = new BufferedInputStream(fis);
-//        bis.read(mybytearray, 0, mybytearray.length);
-//         
-//        OutputStream os = connectionSocket.getOutputStream();
-//         
-//        os.write(mybytearray, 0, mybytearray.length);
-//         
-//        os.flush();
-            
-            
-
-//            try (
-//                    FileInputStream inputStream = new FileInputStream(dir);
-//                    OutputStream outputStream = new FileOutputStream(dir.getName())) {
-//                byte[] buffer = new byte[BUFFER_SIZE];
-//
-//                while (inputStream.read(buffer) != -1) {
-//                    outputStream.write(buffer);
-//                }
-//
-//                inputStream.close();
-//                outputStream.close();
-//                
-//            } catch (IOException ex) {
-//                ex.printStackTrace();
-//            }           
-
-                /* Encerra socket do cliente */
-                connectionSocket.close();
+            try {
+                Socket clientSock = ss.accept();
+                sendFile(clientSock);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
+
+    private void sendFile(Socket clientSock) throws IOException, InterruptedException {
+        BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
+
+        /* Cria uma stream de saída para enviar dados para o cliente */
+        DataOutputStream outToClient = new DataOutputStream(clientSock.getOutputStream());
+
+        /* Aguarda o envio de uma mensagem do cliente. Esta mensagem deve ser terminada em \n ou \r 
+			 * Neste exemplo espera-se que a mensagem seja textual (string). Para ler dados não textuais tente
+			 * a chamada read() */
+        clientSentence = inFromClient.readLine();
+
+        FileInputStream fis = new FileInputStream("C:\\Arquivos para Download\\" + clientSentence);
+
+        InputStream is = new BufferedInputStream(fis);
+
+        System.out.println("tamanho do arquivo: " + fis.getChannel().size() + "\n");
+        outToClient.writeBytes("" + fis.getChannel().size() + "\n");
+
+        int filesize = (int) fis.getChannel().size();
+
+        byte[] buffer = new byte[4096];
+
+        int read = 0;
+        int totalRead = 0;
+        int remaining = filesize;
+        while ((read = fis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
+            Thread.sleep(100);
+            totalRead += read;
+            remaining -= read;
+            System.out.println("read " + totalRead + " bytes.");
+            outToClient.write(buffer, 0, read);
+            Thread.sleep(100);
+        }
+        System.out.println("Acabou de enviar");
+
+        fis.close();
+        outToClient.close();
+    }
+    
+    public static void main(String[] args) {
+		TCPServer fs = new TCPServer(6790);
+		fs.start();
+	}
+}
