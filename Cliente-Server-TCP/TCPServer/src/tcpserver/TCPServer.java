@@ -16,22 +16,17 @@ import java.util.logging.Logger;
 
 class TCPServer extends Thread {
 
-    private ServerSocket ss;
+    private Socket clientSock;
     String clientSentence;
     String echo;
 
-    public TCPServer(int port) {
-        try {
-            ss = new ServerSocket(port);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public TCPServer(Socket clientSock) {
+        this.clientSock = clientSock;
     }
 
     public void run() {
         while (true) {
             try {
-                Socket clientSock = ss.accept();
                 sendFile(clientSock);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -61,7 +56,7 @@ class TCPServer extends Thread {
 
         int filesize = (int) fis.getChannel().size();
 
-        byte[] buffer = new byte[4096];
+        byte[] buffer = new byte[1024];
 
         int read = 0;
         int totalRead = 0;
@@ -79,9 +74,19 @@ class TCPServer extends Thread {
         fis.close();
         outToClient.close();
     }
-    
+
     public static void main(String[] args) {
-		TCPServer fs = new TCPServer(6790);
-		fs.start();
-	}
+        try {
+            ServerSocket ss = new ServerSocket(6790);
+            while (true) {
+                Socket clientSocket = ss.accept();
+                TCPServer server = new TCPServer(clientSocket);
+                server.start();
+            }
+
+        } catch (IOException ex) {
+            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 }

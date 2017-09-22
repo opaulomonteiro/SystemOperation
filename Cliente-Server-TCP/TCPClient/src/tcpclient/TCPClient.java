@@ -20,7 +20,7 @@ class TCPClient {
 
     public TCPClient() {
         try {
-            clientSocket = new Socket("127.0.0.1", 6790);
+            this.clientSocket = new Socket("127.0.0.1", 6790);
             saveFile();
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,7 +54,7 @@ class TCPClient {
 
         DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
 
-        FileOutputStream fos = new FileOutputStream("C:\\Arquivos para download\\" + fileName + ".txt");
+        FileOutputStream fos = new FileOutputStream("C:\\Arquivos para download\\" + fileName + ".png");
         byte[] buffer = new byte[1024];
 
         int read = 0;
